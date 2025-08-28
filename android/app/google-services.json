@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "790027490237",
+    "project_id": "vietmall-app",
+    "storage_bucket": "vietmall-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:790027490237:android:cc6cb06088c17fe7fff8d4",
+        "android_client_info": {
+          "package_name": "com.example.vietmall"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBfQOuXuCG7bzB_rcR86ws8R1tazel5nQg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:790027490237:android:c38417842a28b692fff8d4",
+        "android_client_info": {
+          "package_name": "com.example.vietmall_admin"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBfQOuXuCG7bzB_rcR86ws8R1tazel5nQg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

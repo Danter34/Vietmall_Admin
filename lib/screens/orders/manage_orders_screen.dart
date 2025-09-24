@@ -55,6 +55,7 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen>
         backgroundColor: const Color(0xFF085DAA),
         bottom: TabBar(
           controller: _tabController,
+          unselectedLabelColor: Colors.white,
           tabs: const [
             Tab(text: "Đang hoạt động"),
             Tab(text: "Lịch sử"),
@@ -126,7 +127,7 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen>
   }
 }
 
-// Thêm màn hình chi tiết đơn hàng cho admin (dùng lại code của client)
+// ==== Màn hình chi tiết đơn hàng ====
 class OrderDetailScreen extends StatelessWidget {
   final String orderId;
   const OrderDetailScreen({super.key, required this.orderId});
@@ -140,10 +141,19 @@ class OrderDetailScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text("Chi tiết đơn hàng #${orderId.substring(0, 6)}..."),
       ),
-      body: FutureBuilder<DocumentSnapshot>(
-        future: FirebaseFirestore.instance.collection('orders').doc(orderId).get(),
+      body: StreamBuilder<DocumentSnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('orders')
+            .doc(orderId)
+            .snapshots(), // 🔥 realtime
         builder: (context, snapshot) {
-          if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+          if (!snapshot.hasData) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (!snapshot.data!.exists) {
+            return const Center(child: Text("Đơn hàng không tồn tại"));
+          }
 
           final data = snapshot.data!.data() as Map<String, dynamic>;
           final items = data['items'] as List;
@@ -156,44 +166,59 @@ class OrderDetailScreen extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text("Trạng thái:", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const Text("Trạng thái:",
+                      style:
+                      TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   DropdownButton<String>(
-                    value: _ManageOrdersScreenState.allStatuses.contains(currentStatus)
+                    value: _ManageOrdersScreenState.allStatuses
+                        .contains(currentStatus)
                         ? currentStatus
                         : 'Đang xử lý',
-                    onChanged: (v) {
+                    onChanged: (v) async {
                       if (v != null) {
-                        service.updateOrderStatus(orderId, v);
-                        // Cập nhật giao diện ngay lập tức
-                        (context as Element).markNeedsBuild();
+                        await service.updateOrderStatus(orderId, v);
+                        // Không cần markNeedsBuild nữa
                       }
                     },
                     items: _ManageOrdersScreenState.allStatuses
-                        .map((s) => DropdownMenuItem(value: s, child: Text(s)))
+                        .map((s) =>
+                        DropdownMenuItem(value: s, child: Text(s)))
                         .toList(),
                   ),
                 ],
               ),
               const Divider(height: 32),
-              const Text("Địa chỉ giao hàng", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const Text("Địa chỉ giao hàng",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               Text(address['name'] ?? ''),
               Text(address['phone'] ?? ''),
               Text(address['address'] ?? ''),
               const Divider(height: 32),
-              const Text("Sản phẩm đã đặt", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const Text("Sản phẩm đã đặt",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               ...items.map((item) {
                 return ListTile(
-                  leading: SizedBox(width: 50, height: 50, child: Image.network(item['imageUrl'])),
+                  leading: SizedBox(
+                      width: 50,
+                      height: 50,
+                      child: Image.network(item['imageUrl'])),
                   title: Text(item['title']),
-                  subtitle: Text("${formatter.format(item['price'])} x ${item['quantity']}"),
+                  subtitle: Text(
+                      "${formatter.format(item['price'])} x ${item['quantity']}"),
                 );
               }).toList(),
               const Divider(height: 32),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text("Tổng tiền:", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  Text(formatter.format(data['totalPrice']), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.red)),
+                  const Text("Tổng tiền:",
+                      style:
+                      TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  Text(formatter.format(data['totalPrice']),
+                      style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.red)),
                 ],
               ),
             ],

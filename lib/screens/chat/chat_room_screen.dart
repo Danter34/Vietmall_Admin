@@ -64,8 +64,26 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.receiverName),
         centerTitle: true,
+        title: StreamBuilder<DocumentSnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection('users')
+              .doc(widget.receiverId)
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return Text(widget.receiverName); // fallback khi chưa có dữ liệu
+            }
+
+            final data = snapshot.data!.data() as Map<String, dynamic>?;
+            final fullName = data?['fullName'] ?? widget.receiverName;
+
+            return Text(
+              fullName,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            );
+          },
+        ),
       ),
       body: Column(
         children: [
